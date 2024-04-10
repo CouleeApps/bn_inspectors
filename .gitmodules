@@ -1,3 +1,6 @@
 [submodule "linear_inspector"]
 	path = linear_inspector
 	url = git@github.com:CouleeApps/bn_linear_inspector
+[submodule "type_inspector"]
+	path = type_inspector
+	url = git@github.com:CouleeApps/bn_type_inspector.git
