@@ -38,7 +38,7 @@ from binaryninjaui import SidebarWidget, SidebarWidgetType, Sidebar, UIContext, 
 # TODO: Create tree off-main and then set on main
 
 
-class TokenSidebarWidget(SidebarWidget, UIContextNotification):
+class GraphSidebarWidget(SidebarWidget, UIContextNotification):
     def __init__(self, name, frame: ViewFrame, data: BinaryView):
         SidebarWidget.__init__(self, name)
         UIContextNotification.__init__(self)
@@ -457,7 +457,7 @@ class TokenSidebarWidget(SidebarWidget, UIContextNotification):
             self.updating = False
 
 
-class TokenSidebarWidgetType(SidebarWidgetType):
+class GraphSidebarWidgetType(SidebarWidgetType):
     def __init__(self):
         # Sidebar icons are 28x28 points. Should be at least 56x56 pixels for
         # HiDPI display compatibility. They will be automatically made theme
@@ -469,15 +469,15 @@ class TokenSidebarWidgetType(SidebarWidgetType):
         # Render an "H" as the example icon
         p = QPainter()
         p.begin(icon)
-        p.setFont(QFont("Open Sans", 36))
+        p.setFont(QFont("Open Sans", 56))
         p.setPen(QColor(255, 255, 255, 255))
-        p.drawText(QRectF(0, 0, 56, 56), Qt.AlignCenter, "TkI")
+        p.drawText(QRectF(0, 0, 56, 56), Qt.AlignCenter, "G")
         p.end()
 
-        SidebarWidgetType.__init__(self, icon, "Token Inspector")
+        SidebarWidgetType.__init__(self, icon, "Graph Inspector")
 
     def createWidget(self, frame: ViewFrame, data: BinaryView):
-        return TokenSidebarWidget("Token Inspector", frame, data)
+        return GraphSidebarWidget("Graph Inspector", frame, data)
 
 
-Sidebar.addSidebarWidgetType(TokenSidebarWidgetType())
+Sidebar.addSidebarWidgetType(GraphSidebarWidgetType())
