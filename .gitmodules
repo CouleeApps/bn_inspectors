@@ -1,0 +1,3 @@
+[submodule "linear_inspector"]
+	path = linear_inspector
+	url = git@github.com:CouleeApps/bn_linear_inspector
