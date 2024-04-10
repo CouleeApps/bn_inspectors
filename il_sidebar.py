@@ -112,8 +112,12 @@ class ILSidebarWidget(SidebarWidget, UIContextNotification):
 
         il_function = None
         if self.current_function is not None:
+            if self.graph_type == FunctionGraphType.LiftedILFunctionGraph:
+                il_function: Optional[LowLevelILFunction] = self.current_function.lifted_il_if_available
             if self.graph_type == FunctionGraphType.LowLevelILFunctionGraph:
                 il_function: Optional[LowLevelILFunction] = self.current_function.llil_if_available
+            if self.graph_type == FunctionGraphType.LowLevelILSSAFormFunctionGraph:
+                il_function: Optional[LowLevelILFunction] = self.current_function.llil_if_available.ssa_form
 
         if il_function is None:
             self.model.appendRow([
