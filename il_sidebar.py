@@ -24,6 +24,7 @@ from PySide6.QtGui import QImage, QPainter, QFont, QColor, QShowEvent, QHideEven
     QStandardItemModel
 from PySide6.QtGui import QStandardItem
 from PySide6.QtWidgets import QVBoxLayout, QTreeView
+import binaryninja
 from binaryninja import BinaryView, MediumLevelILInstruction, MediumLevelILOperation
 from binaryninja import FunctionGraphType, \
     LowLevelILFunction, _binaryninjacore, \
@@ -87,6 +88,10 @@ class ILSidebarWidget(SidebarWidget, UIContextNotification):
             self.current_address = view.getCurrentOffset()
             self.current_function = view.getCurrentFunction()
             self.disassembly_settings = view.getDisassemblySettings()
+
+            if hasattr(binaryninja, 'FunctionViewType') \
+                    and isinstance(self.graph_type, binaryninja.FunctionViewType):
+                self.graph_type = self.graph_type.view_type
 
         if self.current_function is None:
             return
