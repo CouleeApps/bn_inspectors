@@ -17,19 +17,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-from typing import Optional
+from typing import Optional, List
 
 from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import QImage, QPainter, QFont, QColor, QShowEvent, QHideEvent, \
     QStandardItemModel
 from PySide6.QtGui import QStandardItem
 from PySide6.QtWidgets import QVBoxLayout, QTreeView
-from binaryninja import BinaryView
+from binaryninja import BinaryView, LowLevelILOperandType, LowLevelILReg, \
+    LowLevelILSetReg, LowLevelILRegSplit, LowLevelILRegSsaPartial, LowLevelILSetRegSsa, \
+    SSARegister, LowLevelILRegSplitSsa, LowLevelILSetRegSplit, LowLevelILSetRegSsaPartial, \
+    ILRegister, ThemeColor, Architecture, Function, FunctionViewType, DisassemblySettings
 from binaryninja import FunctionGraphType, \
     LowLevelILFunction, _binaryninjacore, \
     LowLevelILInstruction, LowLevelILOperation, MediumLevelILFunction, HighLevelILFunction
 from binaryninjaui import SidebarWidget, SidebarWidgetType, Sidebar, ViewFrame, \
-    UIContextNotification, UIContext, ViewLocation, View
+    UIContextNotification, UIContext, ViewLocation, View, getThemeColor
 from binaryninjaui import getMonospaceFont
 
 
@@ -50,6 +53,14 @@ class RegisterSidebarWidget(SidebarWidget, UIContextNotification):
         self.tree.setIndentation(10)
         self.tree.setAutoScroll(False)
         self.tree.setModel(self.model)
+
+        self.graph_type: Optional[FunctionViewType] = None
+        self.current_address: int = 0
+        self.current_arch: Optional[Architecture] = None
+        self.current_function: Optional[Function] = None
+        self.disassembly_settings: Optional[DisassemblySettings] = None
+
+        self.func_regs: List[ILRegister] = []
 
         self.layout.addWidget(self.tree)
         self.update_tree()
@@ -82,7 +93,9 @@ class RegisterSidebarWidget(SidebarWidget, UIContextNotification):
     def update_tree(self):
         view = self.frame.getCurrentViewInterface()
 
+        new_func = False
         if view is not None:
+            new_func = (self.current_function != view.getCurrentFunction())
             self.graph_type = view.getILViewType()
             self.current_address = view.getCurrentOffset()
             self.current_arch = view.getCurrentArchitecture()
@@ -92,13 +105,40 @@ class RegisterSidebarWidget(SidebarWidget, UIContextNotification):
         if self.current_function is None:
             return
 
+        if new_func:
+            self.func_regs = set()
+
+            def collect_regs(insn: LowLevelILInstruction):
+                match insn:
+                    case LowLevelILReg(src=reg):
+                        return [reg]
+                    case LowLevelILRegSplit(hi=hi, lo=lo):
+                        return [hi, lo]
+                    case LowLevelILRegSsaPartial(full_reg=SSARegister(reg=full), src=reg):
+                        return [full, reg]
+                    case LowLevelILRegSplitSsa(hi=SSARegister(reg=hi), lo=SSARegister(reg=lo)):
+                        return [hi, lo]
+                    case LowLevelILSetReg(dest=reg):
+                        return [reg]
+                    case LowLevelILSetRegSplit(hi=hi, lo=lo):
+                        return [hi, lo]
+                    case LowLevelILSetRegSsa(dest=SSARegister(reg=reg)):
+                        return [reg]
+                    case LowLevelILSetRegSsaPartial(full_reg=SSARegister(reg=full), dest=reg):
+                        return [full, reg]
+
+            for regs in self.current_function.llil.traverse(collect_regs):
+                self.func_regs.update(reg.info.full_width_reg for reg in regs if not reg.temp)
+
+            self.func_regs = sorted(list(self.func_regs), key=lambda reg: self.current_arch.get_reg_index(reg))
+
         self.model.clear()
         self.model.setRowCount(0)
 
-        self.model.setColumnCount(2)
+        self.model.setColumnCount(3)
         self.model.setHeaderData(0, Qt.Orientation.Horizontal, "reg")
         self.model.setHeaderData(1, Qt.Orientation.Horizontal, "before")
-        self.model.setHeaderData(1, Qt.Orientation.Horizontal, "after")
+        self.model.setHeaderData(2, Qt.Orientation.Horizontal, "after")
 
         monospace_font = getMonospaceFont(self)
 
@@ -112,15 +152,23 @@ class RegisterSidebarWidget(SidebarWidget, UIContextNotification):
                 item.setBackground(self.palette().alternateBase())
             return row
 
-        for reg_name, reg_info in self.data.arch.regs.items():
+        for reg_name in self.func_regs:
             reg_value_before = self.current_function.get_reg_value_at(self.current_address, reg_name, self.current_arch)
             reg_value_after = self.current_function.get_reg_value_after(self.current_address, reg_name, self.current_arch)
 
-            self.model.invisibleRootItem().appendRow([
+            row = [
                 QStandardItem(reg_name),
                 monospace(QStandardItem(str(reg_value_before))),
                 monospace(QStandardItem(str(reg_value_after))),
-            ])
+            ]
+
+            if reg_value_before.type != reg_value_after.type \
+                    or reg_value_before.value != reg_value_after.value \
+                    or reg_value_before.offset != reg_value_after.offset:
+                for item in row:
+                    item.setForeground(getThemeColor(ThemeColor.GreenStandardHighlightColor))
+
+            self.model.invisibleRootItem().appendRow(row)
 
         self.tree.expandToDepth(1)
 
