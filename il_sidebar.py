@@ -508,7 +508,7 @@ class ILSidebarWidget(SidebarWidget, UIContextNotification):
                     insn = il_function[j]
                     if insn.operation < len(MediumLevelILOperation):
                         op_text = str(insn)
-                        op_type = str(il_function.get_expr_type(i))
+                        op_type = str(il_function.get_expr_type(j))
                         op_name = MediumLevelILOperation(insn.operation).name
                     else:
                         op_text = "BAD"
@@ -723,7 +723,7 @@ class ILSidebarWidget(SidebarWidget, UIContextNotification):
                     insn = il_function[j]
                     if insn.operation < len(HighLevelILOperation):
                         op_text = str(insn)
-                        op_type = str(il_function.get_expr_type(i))
+                        op_type = str(il_function.get_expr_type(j))
                         op_name = HighLevelILOperation(insn.operation).name
                     else:
                         op_text = "BAD"
