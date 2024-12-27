@@ -25,10 +25,15 @@ Shows you the contents of the tree structure of Linear View
 
 ![alt text](img/linear_inspector.png)
 
-## IL Inspector (LLIL Only Currently)
-See all the details of all the IL expressions and instructions in a function
+## IL Inspector
+See all the details of all the IL expressions and instructions in a function.
 
 ![alt text](img/il_inspector.png)
+
+## Register Inspector
+See the values of all registers used in the function, and if they changed at the current address.
+
+![alt text](img/register_inspector.png)
 
 ## License
 
