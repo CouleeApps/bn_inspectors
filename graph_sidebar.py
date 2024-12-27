@@ -27,7 +27,7 @@ from PySide6.QtWidgets import QVBoxLayout, QTreeView
 from binaryninja import BinaryView, LinearViewObject, FunctionGraphType, \
     LinearDisassemblyLine, InstructionTextToken, Function, DisassemblySettings, \
     LowLevelILFunction, BasicBlock, FlowGraph, FlowGraphNode, execute_on_main_thread, \
-    InstructionTextTokenType, InstructionTextTokenContext
+    InstructionTextTokenType, InstructionTextTokenContext, FunctionViewType
 from binaryninjaui import SidebarWidget, SidebarWidgetType, Sidebar, UIContext, \
     UIContextNotification, ViewFrame, View, ViewLocation, FileContext, getMonospaceFont
 
@@ -60,7 +60,7 @@ class GraphSidebarWidget(SidebarWidget, UIContextNotification):
         self.updating = False
 
         self.graph: Optional[FlowGraph] = None
-        self.graph_type = FunctionGraphType.NormalFunctionGraph
+        self.graph_type = FunctionViewType(FunctionGraphType.NormalFunctionGraph)
         self.current_address = 0
         self.current_function: Optional[Function] = None
         self.disassembly_settings: Optional[DisassemblySettings] = None
@@ -139,55 +139,55 @@ class GraphSidebarWidget(SidebarWidget, UIContextNotification):
         graph = None
         item_type = None
         if self.current_function is not None:
-            if self.graph_type == FunctionGraphType.LiftedILFunctionGraph:
+            if self.graph_type.view_type == FunctionGraphType.LiftedILFunctionGraph:
                 func = self.current_function.lifted_il_if_available
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'llil'
-            elif self.graph_type == FunctionGraphType.LowLevelILFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.LowLevelILFunctionGraph:
                 func = self.current_function.llil_if_available
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'llil'
-            elif self.graph_type == FunctionGraphType.LowLevelILSSAFormFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.LowLevelILSSAFormFunctionGraph:
                 func = self.current_function.llil_if_available.ssa_form
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'llil'
-            elif self.graph_type == FunctionGraphType.MediumLevelILFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.MediumLevelILFunctionGraph:
                 func = self.current_function.mlil_if_available
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'mlil'
-            elif self.graph_type == FunctionGraphType.MediumLevelILSSAFormFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.MediumLevelILSSAFormFunctionGraph:
                 func = self.current_function.mlil_if_available.ssa_form
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'mlil'
-            elif self.graph_type == FunctionGraphType.MappedMediumLevelILFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.MappedMediumLevelILFunctionGraph:
                 func = self.current_function.mmlil_if_available
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'mlil'
-            elif self.graph_type == FunctionGraphType.MappedMediumLevelILSSAFormFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.MappedMediumLevelILSSAFormFunctionGraph:
                 func = self.current_function.mmlil_if_available.ssa_form
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'mlil'
-            elif self.graph_type == FunctionGraphType.HighLevelILFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.HighLevelILFunctionGraph:
                 func = self.current_function.hlil_if_available
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'hlil'
-            elif self.graph_type == FunctionGraphType.HighLevelILSSAFormFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.HighLevelILSSAFormFunctionGraph:
                 func = self.current_function.hlil_if_available.ssa_form
                 if func:
                     graph = func.create_graph(self.disassembly_settings)
                     item_type = 'hlil'
-            elif self.graph_type == FunctionGraphType.HighLevelLanguageRepresentationFunctionGraph:
+            elif self.graph_type.view_type == FunctionGraphType.HighLevelLanguageRepresentationFunctionGraph:
                 func = self.current_function.hlil_if_available
                 if func:
-                    graph = self.current_function.create_graph(FunctionGraphType.HighLevelLanguageRepresentationFunctionGraph, self.disassembly_settings)
+                    graph = self.current_function.create_graph(self.graph_type, self.disassembly_settings)
                     item_type = 'langrep'
             else:
                 func = self.current_function
