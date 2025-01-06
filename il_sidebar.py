@@ -389,11 +389,16 @@ class ILSidebarWidget(SidebarWidget, UIContextNotification):
             expr_count = _binaryninjacore.BNGetMediumLevelILExprCount(il_function.handle)
             for i in range(expr_count):
                 expr = MediumLevelILInstruction.create(il_function, i)
-                if expr.operation < len(MediumLevelILOperation):
-                    op_text = str(expr)
-                    op_type = str(il_function.get_expr_type(i))
-                    op_name = MediumLevelILOperation(expr.operation).name
-                else:
+                try:
+                    if expr.operation < len(MediumLevelILOperation):
+                        op_text = str(expr)
+                        op_type = str(il_function.get_expr_type(i))
+                        op_name = MediumLevelILOperation(expr.operation).name
+                    else:
+                        op_text = "BAD"
+                        op_type = "BAD"
+                        op_name = f"BAD ({expr.operation})"
+                except:
                     op_text = "BAD"
                     op_type = "BAD"
                     op_name = f"BAD ({expr.operation})"
