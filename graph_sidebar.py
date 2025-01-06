@@ -107,7 +107,7 @@ class GraphSidebarWidget(SidebarWidget, UIContextNotification):
         if view is not None:
             old_state = (
                 self.graph_type,
-                self.current_function.start,
+                self.current_function.start if self.current_function is not None else 0,
             )
 
             self.graph_type = view.getILViewType()
@@ -117,7 +117,7 @@ class GraphSidebarWidget(SidebarWidget, UIContextNotification):
 
             new_state = (
                 self.graph_type,
-                self.current_function.start,
+                self.current_function.start if self.current_function is not None else 0,
             )
 
             if old_state != new_state:
